@@ -4,7 +4,6 @@ A .NET implementation of the MalShare API
 
 
 What's currently supported (https://malshare.com/doc.php):
-
 <br>List hashes from the past 24 hours
 <br>List of sample sources from the past 24 hours
 <br>Get stored file details
