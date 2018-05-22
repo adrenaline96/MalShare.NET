@@ -3,7 +3,8 @@ A .NET implementation of the MalShare API
 <br>MalShare.com is a free malware repository providing researchers access to samples, malicous feeds, and Yara results.
 
 
-What's currently supported (https://malshare.com/doc.php)
+What's currently supported (https://malshare.com/doc.php):
+
 <br>List hashes from the past 24 hours
 <br>List of sample sources from the past 24 hours
 <br>Get stored file details
