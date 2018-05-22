@@ -21,23 +21,4 @@ You have 3 options:
 
 How to use:
 
-After installing the package, add the next line:
-using MalShare.NET;
-
-After that, you are rolling...
-
-MSClient msc = new MSClient("<<API KEY>>");
-
-List<String> searchResults = new List<String>();
-
-searchResults.AddRange(msc.Search("<query>")); //Retrieves file information by searching sample hashes, sources and file names
-
-searchResults.AddRange(msc.SearchByType("<type>")); //Retrieves a list of MD5/SHA1/SHA256 hashes of a specific type from the past 24 hours
-
-searchResults.AddRange(msc.GetDetails("MD5/SHA1/SHA256 hash")); //Get stored file details
-
-searchResults.AddRange(msc.GetSources()); //List of sample sources from the past 24 hours
-
-searchResults.AddRange(msc.GetHashList()); //List hashes from the past 24 hours
-
-msc.Upload("<file path>") //Uploads a file to MalShare
+You can find usage examples here: https://hastebin.com/wodisotoko.cs
