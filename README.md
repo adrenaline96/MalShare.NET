@@ -18,6 +18,9 @@ You have 3 options:
 2. Install the NuGet Package from nuget.org (https://www.nuget.org/packages/MalShare.NET)
 3. Install the .nupkg file manually
 
+Dependencies:
+1. Microsoft.CSharp (>= 4.4.1)
+2. Newtonsoft.Json (>= 11.0.2)
 
 How to use:
 
