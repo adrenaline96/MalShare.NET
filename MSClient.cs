@@ -121,7 +121,7 @@ namespace MalShare.NET
             }
             catch
             {
-                //if you search for a nonexistent hash it gives a 500 internal server error
+                //404 not found
             }
             dynamic dynObj = JsonConvert.DeserializeObject(html);
 
@@ -132,7 +132,10 @@ namespace MalShare.NET
                 searchResults.Add("SHA256: " + dynObj.SHA256);
                 searchResults.Add("SSDEEP: " + dynObj.SSDEEP);
                 searchResults.Add("Type: " + dynObj.F_TYPE);
-                searchResults.Add("Sources: " + dynObj.SOURCES); //there's an issue with MalShare, poorly parsed JSON
+                 foreach (var item in dynObj.SOURCES)
+                {
+                    searchResults.Add("Source: " + Convert.ToString(item));
+                }
             }
             else
             {
