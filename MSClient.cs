@@ -24,13 +24,18 @@ namespace MalShare.NET
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.AutomaticDecompression = DecompressionMethods.GZip;
+            request.Timeout = 5000;
 
+          try
+          {
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream))
             {
                 html = reader.ReadToEnd();
             }
+          }
+          catch { }
 
             if (!String.IsNullOrEmpty(html))
             {
@@ -144,6 +149,35 @@ namespace MalShare.NET
 
                 return searchResults;
         }
+        
+        public List<String> GetTypeList()
+        {
+            List<String> types = new List<String>();
+
+
+            String html = String.Empty;
+            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=gettypes";
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.AutomaticDecompression = DecompressionMethods.GZip;
+
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            using (Stream stream = response.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                html = reader.ReadToEnd();
+            }
+
+            dynamic dynObj = JsonConvert.DeserializeObject(html);
+
+            foreach (var item in dynObj)
+            {
+                types.Add(Convert.ToString(item).Replace("\"", string.Empty));
+            }
+            types.RemoveAll(string.IsNullOrWhiteSpace);
+
+            return types;
+        }
 
         public List<String> GetSources()
         {
@@ -198,6 +232,33 @@ namespace MalShare.NET
             }
 
             return hashList;
+        }
+        
+        public List<String> GetRequestLimit()
+        {
+            List<String> limitList = new List<String>();
+
+            String html = String.Empty;
+            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=getlimit";
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.AutomaticDecompression = DecompressionMethods.GZip;
+
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            using (Stream stream = response.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                html = reader.ReadToEnd();
+            }
+
+            dynamic dynObj = JsonConvert.DeserializeObject(html);
+
+            
+            limitList.Add("Limit: " + dynObj.LIMIT);
+            limitList.Add("Remaining: " + dynObj.REMAINING);
+
+
+            return limitList;
         }
 
         public void Upload(String filePath)
