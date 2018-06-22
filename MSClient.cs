@@ -200,7 +200,7 @@ namespace MalShare.NET
 
             foreach (var item in dynObj)
             {
-                sources.Add(item);
+                sources.Add(Convert.ToString(item));
             }
             sources.RemoveAll(string.IsNullOrWhiteSpace);
 
