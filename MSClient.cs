@@ -288,7 +288,7 @@ namespace MalShare.NET
 
         }
 
-        public string UrlToCollection(string urlToUpload)
+        public string UrlToCollection(string urlToUpload, bool enableCrawling = false)
         {
             string url = $@"https://malshare.com/api.php?api_key={key}&action=download_url";
 
@@ -300,7 +300,10 @@ namespace MalShare.NET
                 {
                     NameValueCollection data = new NameValueCollection();
                     data["url"] = urlToUpload;
-
+                    if(enableCrawling == true)
+                    {
+                        data["recursive"] = "1";
+                    }
 
                     var response = wb.UploadValues(url, "POST", data);
                     string responseInString = Encoding.UTF8.GetString(response);
@@ -315,10 +318,17 @@ namespace MalShare.NET
                 {
                     if (ex.Response != null)
                     {
-                        var response = ex.Response;
-                        var dataStream = response.GetResponseStream();
-                        var reader = new StreamReader(dataStream);
-                        var details = reader.ReadToEnd();
+                        WebResponse response = ex.Response;
+                        Stream dataStream = response.GetResponseStream();
+                        StreamReader reader = new StreamReader(dataStream);
+                        string details = reader.ReadToEnd();
+
+                        if (details.Contains("error"))
+                        {
+                            dynamic dynObj = JsonConvert.DeserializeObject(details);
+
+                            return $"Error for API key {key}: {dynObj.error}";
+                        }
 
                         return details;
                     }
