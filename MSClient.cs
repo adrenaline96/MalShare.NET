@@ -17,12 +17,9 @@ namespace MalShare.NET
             key = apiKey;
         }
 
-        public List<string> Search(string searchQuery)
+        private static string GetResponse(string url)
         {
-            List<string> searchResults = new List<string>();
-
             string html = String.Empty;
-            string url = $@"https://malshare.com/api.php?api_key={key}&action=search&query={searchQuery}";
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.AutomaticDecompression = DecompressionMethods.GZip;
@@ -38,6 +35,18 @@ namespace MalShare.NET
                 }
             }
             catch { }
+
+            return html;
+        }
+        public List<string> Search(string searchQuery)
+        {
+            List<string> searchResults = new List<string>();
+
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=search&query={searchQuery}";
+
+
+            html = GetResponse(url);
 
             if (!String.IsNullOrEmpty(html))
             {
@@ -80,23 +89,13 @@ namespace MalShare.NET
             string html = String.Empty;
             string url = $@"https://malshare.com/api.php?api_key={key}&action=type&type={type}";
 
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.AutomaticDecompression = DecompressionMethods.GZip;
 
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (Stream stream = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    html = reader.ReadToEnd();
-                }
-            }
-            catch { }
-            dynamic dynObj = JsonConvert.DeserializeObject(html);
+            html = GetResponse(url);
+
 
             if (html != "[]" && !String.IsNullOrWhiteSpace(html))
             {
+                dynamic dynObj = JsonConvert.DeserializeObject(html);
                 foreach (var item in dynObj)
                 {
                     searchResults.Add("MD5: " + item.md5 + "/SHA1: " + item.sha1 + "/SHA256: " + item.sha256);
@@ -117,26 +116,12 @@ namespace MalShare.NET
             string html = String.Empty;
             string url = $@"https://malshare.com/api.php?api_key={key}&action=details&hash={hash}";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-
-            try
-            {
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (Stream stream = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    html = reader.ReadToEnd();
-                }
-            }
-            catch
-            {
-                //404 not found
-            }
-            dynamic dynObj = JsonConvert.DeserializeObject(html);
+            html = GetResponse(url);
 
             if (!String.IsNullOrEmpty(html))
             {
+                dynamic dynObj = JsonConvert.DeserializeObject(html);
+
                 searchResults.Add("MD5: " + dynObj.MD5);
                 searchResults.Add("SHA1: " + dynObj.SHA1);
                 searchResults.Add("SHA256: " + dynObj.SHA256);
@@ -163,23 +148,8 @@ namespace MalShare.NET
             string html = String.Empty;
             string url = $@"https://malshare.com/api.php?api_key={key}&action=gettypes";
 
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.AutomaticDecompression = DecompressionMethods.GZip;
 
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (Stream stream = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    html = reader.ReadToEnd();
-                }
-
-            }
-            catch
-            {
-                types.Add("Failed to retreive list.");
-            }
+            html = GetResponse(url);
 
             if (!String.IsNullOrWhiteSpace(html))
             {
@@ -192,6 +162,10 @@ namespace MalShare.NET
                 }
                 types.RemoveAll(String.IsNullOrWhiteSpace);
             }
+            else
+            {
+                types.Add("Failed to retreive list.");
+            }
             return types;
         }
 
@@ -202,22 +176,7 @@ namespace MalShare.NET
             string html = String.Empty;
             string url = $@"https://malshare.com/api.php?api_key={key}&action=getsources";
 
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.AutomaticDecompression = DecompressionMethods.GZip;
-
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (Stream stream = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    html = reader.ReadToEnd();
-                }
-            }
-            catch
-            {
-                sources.Add("Failed to retrieve sources.");
-            }
+            html = GetResponse(url);
 
             if (!String.IsNullOrWhiteSpace(html))
             {
@@ -228,6 +187,10 @@ namespace MalShare.NET
                     sources.Add(Convert.ToString(item));
                 }
                 sources.RemoveAll(String.IsNullOrWhiteSpace);
+            }
+            else
+            {
+                sources.Add("Failed to retrieve sources.");
             }
 
             return sources;
@@ -240,22 +203,8 @@ namespace MalShare.NET
             string html = String.Empty;
             string url = $@"https://malshare.com/api.php?api_key={key}&action=getlist";
 
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.AutomaticDecompression = DecompressionMethods.GZip;
 
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (Stream stream = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    html = reader.ReadToEnd();
-                }
-            }
-            catch
-            {
-                hashList.Add("Failed to retrive hash list.");
-            }
+            html = GetResponse(url);
 
             if (!String.IsNullOrWhiteSpace(html))
             {
@@ -265,6 +214,10 @@ namespace MalShare.NET
                 {
                     hashList.Add("MD5: " + item.md5 + "/SHA1: " + item.sha1 + "/SHA256: " + item.sha256);
                 }
+            }
+            else
+            {
+                hashList.Add("Failed to retrive hash list.");
             }
             return hashList;
         }
@@ -276,23 +229,8 @@ namespace MalShare.NET
             string html = String.Empty;
             string url = $@"https://malshare.com/api.php?api_key={key}&action=getlimit";
 
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.AutomaticDecompression = DecompressionMethods.GZip;
 
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (Stream stream = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    html = reader.ReadToEnd();
-                }
-
-            }
-            catch
-            {
-                limitList.Add("Failed to retrieve request limit.");
-            }
+            html = GetResponse(url);
 
             if (!String.IsNullOrWhiteSpace(html))
             {
@@ -301,6 +239,10 @@ namespace MalShare.NET
                 limitList.Add("Limit: " + dynObj.LIMIT);
                 limitList.Add("Remaining: " + dynObj.REMAINING);
 
+            }
+            else
+            {
+                limitList.Add("Failed to retrieve request limit.");
             }
             return limitList;
         }
@@ -396,27 +338,14 @@ namespace MalShare.NET
             string html = String.Empty;
             string url = $@"https://malshare.com/api.php?api_key={key}&action=download_url_check&guid={guid}";
 
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.AutomaticDecompression = DecompressionMethods.GZip;
-
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (Stream stream = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    html = reader.ReadToEnd();
-                }
-
-            }
-            catch
+            html = GetResponse(url);
+            if (String.IsNullOrWhiteSpace(html))
             {
                 return $"Failed to retrieve status for {guid}";
             }
 
             dynamic dynObj = JsonConvert.DeserializeObject(html);
-
-
+            
             return $"Status for {guid}: {dynObj.status}";
         }
     }
