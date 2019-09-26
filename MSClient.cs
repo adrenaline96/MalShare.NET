@@ -1,41 +1,43 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Net;
+using System.Text;
 
 namespace MalShare.NET
 {
     public class MSClient
     {
-        private String key;
+        private string key;
 
-       public MSClient(String apiKey)
+        public MSClient(string apiKey)
         {
             key = apiKey;
         }
 
-        public List<String> Search(String searchQuery)
+        public List<string> Search(string searchQuery)
         {
-            List<String> searchResults = new List<String>();
+            List<string> searchResults = new List<string>();
 
-            String html = String.Empty;
-            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=search&query=" + searchQuery;
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=search&query={searchQuery}";
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.AutomaticDecompression = DecompressionMethods.GZip;
             request.Timeout = 5000;
 
-          try
-          {
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                html = reader.ReadToEnd();
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    html = reader.ReadToEnd();
+                }
             }
-          }
-          catch { }
+            catch { }
 
             if (!String.IsNullOrEmpty(html))
             {
@@ -64,33 +66,36 @@ namespace MalShare.NET
             }
             else
             {
-                searchResults.Add("Not found.");
+                searchResults.Add($"Results for {searchQuery}: Not found.");
             }
 
 
             return searchResults;
         }
 
-        public List<String> SearchByType(String type)
+        public List<string> SearchByType(string type)
         {
-            List<String> searchResults = new List<String>();
+            List<string> searchResults = new List<string>();
 
-            String html = String.Empty;
-            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=type&type=" + type;
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=type&type={type}";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                html = reader.ReadToEnd();
-            }
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip;
 
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    html = reader.ReadToEnd();
+                }
+            }
+            catch { }
             dynamic dynObj = JsonConvert.DeserializeObject(html);
 
-            if (html != "[]")
+            if (html != "[]" && !String.IsNullOrWhiteSpace(html))
             {
                 foreach (var item in dynObj)
                 {
@@ -99,18 +104,18 @@ namespace MalShare.NET
             }
             else
             {
-                searchResults.Add("Not found.");
+                searchResults.Add($"Results for {type}: Not found.");
             }
 
             return searchResults;
         }
 
-        public List<String> GetDetails(String hash)
+        public List<string> GetDetails(string hash)
         {
-            List<String> searchResults = new List<String>();
+            List<string> searchResults = new List<string>();
 
-            String html = String.Empty;
-            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=details&hash=" + hash;
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=details&hash={hash}";
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.AutomaticDecompression = DecompressionMethods.GZip;
@@ -137,140 +142,283 @@ namespace MalShare.NET
                 searchResults.Add("SHA256: " + dynObj.SHA256);
                 searchResults.Add("SSDEEP: " + dynObj.SSDEEP);
                 searchResults.Add("Type: " + dynObj.F_TYPE);
-                 foreach (var item in dynObj.SOURCES)
+                foreach (var item in dynObj.SOURCES)
                 {
                     searchResults.Add("Source: " + Convert.ToString(item));
                 }
             }
             else
             {
-                searchResults.Add("Not found.");
+                searchResults.Add($"Results for {hash}: Not found.");
             }
 
-                return searchResults;
+            return searchResults;
         }
-        
-        public List<String> GetTypeList()
+
+        public List<string> GetTypeList()
         {
-            List<String> types = new List<String>();
+            List<string> types = new List<string>();
 
 
-            String html = String.Empty;
-            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=gettypes";
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=gettypes";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                html = reader.ReadToEnd();
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip;
+
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    html = reader.ReadToEnd();
+                }
+
+            }
+            catch
+            {
+                types.Add("Failed to retreive list.");
             }
 
-            dynamic dynObj = JsonConvert.DeserializeObject(html);
-
-            foreach (var item in dynObj)
+            if (!String.IsNullOrWhiteSpace(html))
             {
-                types.Add(Convert.ToString(item).Replace("\"", string.Empty));
-            }
-            types.RemoveAll(string.IsNullOrWhiteSpace);
+                dynamic dynObj = JsonConvert.DeserializeObject(html);
 
+
+                foreach (var item in dynObj)
+                {
+                    types.Add(Convert.ToString(item).Replace("\"", String.Empty));
+                }
+                types.RemoveAll(String.IsNullOrWhiteSpace);
+            }
             return types;
         }
 
-        public List<String> GetSources()
+        public List<string> GetSources()
         {
-            List<String> sources = new List<String>();
+            List<string> sources = new List<string>();
 
-            String html = String.Empty;
-            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=getsources";
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=getsources";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                html = reader.ReadToEnd();
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip;
+
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    html = reader.ReadToEnd();
+                }
+            }
+            catch
+            {
+                sources.Add("Failed to retrieve sources.");
             }
 
-            dynamic dynObj = JsonConvert.DeserializeObject(html);
-
-            foreach (var item in dynObj)
+            if (!String.IsNullOrWhiteSpace(html))
             {
-                sources.Add(Convert.ToString(item));
+                dynamic dynObj = JsonConvert.DeserializeObject(html);
+
+                foreach (var item in dynObj)
+                {
+                    sources.Add(Convert.ToString(item));
+                }
+                sources.RemoveAll(String.IsNullOrWhiteSpace);
             }
-            sources.RemoveAll(string.IsNullOrWhiteSpace);
 
             return sources;
         }
 
-        public List<String> GetHashList()
+        public List<string> GetHashList()
         {
-            List<String> hashList = new List<String>();
+            List<string> hashList = new List<string>();
 
-            String html = String.Empty;
-            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=getlist";
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=getlist";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                html = reader.ReadToEnd();
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip;
+
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    html = reader.ReadToEnd();
+                }
+            }
+            catch
+            {
+                hashList.Add("Failed to retrive hash list.");
             }
 
-            dynamic dynObj = JsonConvert.DeserializeObject(html);
-
-            foreach (var item in dynObj)
+            if (!String.IsNullOrWhiteSpace(html))
             {
-                hashList.Add("MD5: " + item.md5 + "/SHA1: " + item.sha1 + "/SHA256: " + item.sha256);
-            }
+                dynamic dynObj = JsonConvert.DeserializeObject(html);
 
+                foreach (var item in dynObj)
+                {
+                    hashList.Add("MD5: " + item.md5 + "/SHA1: " + item.sha1 + "/SHA256: " + item.sha256);
+                }
+            }
             return hashList;
         }
-        
-        public List<String> GetRequestLimit()
+
+        public List<string> GetRequestLimit()
         {
-            List<String> limitList = new List<String>();
+            List<string> limitList = new List<string>();
 
-            String html = String.Empty;
-            String url = @"https://malshare.com/api.php?api_key=" + key + "&action=getlimit";
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=getlimit";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                html = reader.ReadToEnd();
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip;
+
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    html = reader.ReadToEnd();
+                }
+
+            }
+            catch
+            {
+                limitList.Add("Failed to retrieve request limit.");
             }
 
-            dynamic dynObj = JsonConvert.DeserializeObject(html);
+            if (!String.IsNullOrWhiteSpace(html))
+            {
+                dynamic dynObj = JsonConvert.DeserializeObject(html);
 
-            
-            limitList.Add("Limit: " + dynObj.LIMIT);
-            limitList.Add("Remaining: " + dynObj.REMAINING);
+                limitList.Add("Limit: " + dynObj.LIMIT);
+                limitList.Add("Remaining: " + dynObj.REMAINING);
 
-
+            }
             return limitList;
         }
 
-        public void Upload(String filePath)
+        public string Upload(string filePath)
         {
             WebClient wc = new WebClient();
 
-            string url = @"https://malshare.com/api.php?api_key=" + key + "&action=upload";
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=upload";
 
-            wc.UploadFile(url, filePath);
+            try
+            {
+                wc.UploadFile(url, filePath);
 
-            wc.Dispose();
+                wc.Dispose();
+
+            }
+            catch
+            {
+                return $"{filePath} - Failed to upload file.";
+            }
+
+            return $"File {filePath} uploaded successfully.";
+        }
+
+        public string DownloadFile(string hash)
+        {
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=getfile&hash={hash}";
+
+            Directory.CreateDirectory("DownloadedFiles");
+
+            WebClient client = new WebClient();
+            try
+            {
+                client.DownloadFile(new Uri(url), @"DownloadedFiles\" + hash);
+            }
+            catch
+            {
+                return $"File with hash {hash} not found.";
+            }
+
+            return $@"File with hash {hash} downloaded to DownloadedFiles\{hash}";
 
         }
+
+        public string UrlToCollection(string urlToUpload)
+        {
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=download_url";
+
+            string responseStr = String.Empty;
+
+            using (WebClient wb = new WebClient())
+            {
+                try
+                {
+                    NameValueCollection data = new NameValueCollection();
+                    data["url"] = urlToUpload;
+
+
+                    var response = wb.UploadValues(url, "POST", data);
+                    string responseInString = Encoding.UTF8.GetString(response);
+
+
+                    dynamic dynObj = JsonConvert.DeserializeObject(responseInString);
+
+                    responseStr = $"GUID for {urlToUpload}: {dynObj.guid}";
+
+                }
+                catch (WebException ex)
+                {
+                    if (ex.Response != null)
+                    {
+                        var response = ex.Response;
+                        var dataStream = response.GetResponseStream();
+                        var reader = new StreamReader(dataStream);
+                        var details = reader.ReadToEnd();
+
+                        return details;
+                    }
+                }
+                catch
+                {
+                    return $"Failed to add {urlToUpload} to the sample collection.";
+                }
+
+                return responseStr;
+            }
+
+        }
+
+        public string CheckGUID(string guid)
+        {
+            string html = String.Empty;
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=download_url_check&guid={guid}";
+
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip;
+
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    html = reader.ReadToEnd();
+                }
+
+            }
+            catch
+            {
+                return $"Failed to retrieve status for {guid}";
+            }
+
+            dynamic dynObj = JsonConvert.DeserializeObject(html);
+
+
+            return $"Status for {guid}: {dynObj.status}";
+        }
     }
+
 }
