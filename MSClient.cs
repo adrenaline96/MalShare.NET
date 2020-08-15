@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -358,6 +358,59 @@ namespace MalShare.NET
             
             return $"Status for {guid}: {dynObj.status}";
         }
+
+        public string HashLookup(string hash)
+        {
+            string url = $@"https://malshare.com/api.php?api_key={key}&action=hashlookup";
+
+            string responseStr = String.Empty;
+
+            using (WebClient wb = new WebClient())
+            {
+                try
+                {
+
+                    var response = wb.UploadString(url, "POST", hash);
+
+                    var result = JsonConvert.DeserializeObject<List<Hashes>>(response);
+
+                    responseStr = $"MD5: {result[0].md5}/SHA1: {result[0].sha1}/SHA256: {result[0].sha256}";
+
+
+                }
+                catch (WebException ex)
+                {
+                    if (ex.Response != null)
+                    {
+                        WebResponse response = ex.Response;
+                        Stream dataStream = response.GetResponseStream();
+                        StreamReader reader = new StreamReader(dataStream);
+                        string details = reader.ReadToEnd();
+
+                        if (details.Contains("error"))
+                        {
+                            dynamic dynObj = JsonConvert.DeserializeObject(details);
+
+                            return $"Error for API key {key}: {dynObj.error}";
+                        }
+
+                        return details;
+                    }
+                }
+                catch
+                {
+                    return $"Failed to retrieve data for {hash}. Perhaps it doesn't exist in the database.";
+                }
+
+                return responseStr;
+            }
+        }
     }
 
+    public class Hashes
+    {
+        public string md5 { get; set; }
+        public string sha1 { get; set; }
+        public string sha256 { get; set; }
+    }
 }
