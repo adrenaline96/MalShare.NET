@@ -8,7 +8,7 @@ What's currently supported (https://malshare.com/doc.php):
 2. List of sample sources from the past 24 hours. **Endpoint: "getsources".**
 3. Get stored file details. **Endpoint: "details".**
 4. List MD5/SHA1/SHA256 hashes of a specific type from the past 24 hours. **Endpoint: "type".**
-5. Search sample hashes, sources and file names. **Endpoint: "search". - New in 2.4: fixed this functionality, to reflect the changed to the endpoint**
+5. Search sample hashes, sources and file names. **Endpoint: "search". - New in 2.4: fixed this functionality, to reflect the changes to the endpoint**
 6. Upload using FormData field "upload". **Endpoint: "upload".**
 7. Get list of file types & count from the past 24 hours. **Endpoint: "gettypes".**
 8. GET allocated number of API key requests per day and remaining. **Endpoint: "getlimit".**
